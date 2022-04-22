@@ -7,4 +7,8 @@ sudo rpm -Uvh jdk-17_linux-x64_bin.rpm
 
 Monitoring
 iotop -o
-watch iostat -hxym       
+watch iostat -hxym
+
+
+
+gradle shadowjar

@@ -26,7 +26,15 @@ public class App {
         System.out.println("Max JVM memory: " + Runtime.getRuntime().maxMemory());
 
         CommandLineParser parser = new DefaultParser();
-        CommandLine cmd = parser.parse(setupCommandlineOptions(), args);
+        CommandLine cmd = null;
+        Options options = setupCommandlineOptions();
+        try {
+            cmd = parser.parse(options, args);
+        } catch (ParseException e) {
+            System.out.println(e.getMessage());
+            new HelpFormatter().printHelp("file.writing.App", options);
+            System.exit(1);
+        }
 
         String path = cmd.getOptionValue("input");
         int numThreads = Integer.parseInt(cmd.getOptionValue("num_threads"));
@@ -34,8 +42,8 @@ public class App {
         String operationType = cmd.getOptionValue("operation");
 
         List<String> lines = Files.readLines(new File(path), Charsets.UTF_8);
-
-        if (operationType == RAW) {
+        System.out.println("Operation type: " + operationType);
+        if (operationType.equalsIgnoreCase(RAW)) {
             multiThread(() -> {
                 try {
                     writeRaw(lines);
@@ -43,7 +51,7 @@ public class App {
                     e.printStackTrace();
                 }
             }, numThreads, RAW);
-        } else if (operationType == BUFFERED) {
+        } else if (operationType.equalsIgnoreCase(BUFFERED)) {
 
             multiThread(() -> {
                 try {
@@ -52,7 +60,7 @@ public class App {
                     e.printStackTrace();
                 }
             }, numThreads, BUFFERED);
-        } else if (operationType == MEMORYMAP) {
+        } else if (operationType.equalsIgnoreCase(MEMORYMAP)) {
 
             multiThread(() -> {
                 try {
@@ -61,6 +69,8 @@ public class App {
                     e.printStackTrace();
                 }
             }, numThreads, MEMORYMAP);
+        } else {
+            throw new RuntimeException("Unknown operation type: " + operationType);
         }
 
     }
@@ -73,7 +83,7 @@ public class App {
         Option inputFileOption = new Option("i", "input", true, "Input file");
         inputFileOption.setRequired(true);
         options.addOption(inputFileOption);
-        Option outputFileOption = new Option("o", "output", true, "Output file");
+        Option outputFileOption = new Option("o", "output", true, "Output directory");
         outputFileOption.setRequired(true);
         options.addOption(outputFileOption);
         Option writeOption = new Option("t", "operation", true, "Type of IO write operation - raw | buffered | memoryMap");
